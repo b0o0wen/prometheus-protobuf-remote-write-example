@@ -23,7 +23,7 @@ object Test {
     println(JSON.toJSONString(person, new SerializeConfig(true)))
     println(person.toByteArray)
 
-    // class from copied java file. its constructor is private. build it from newBuilder
+    // class from copied java file. build it from newBuilder
     /*
     val wr: WriteRequest = WriteRequest(
       Seq(new TimeSeries(
@@ -31,19 +31,28 @@ object Test {
         Seq(new Sample(1, 1500000L))
       )))
     */
-    val nwr: WriteRequest = WriteRequest.newBuilder().addTimeseries(
-      TimeSeries.newBuilder()
-        .addLabels(Label.newBuilder().setName("myName").setValue("myValue"))
-        .addSamples(Sample.newBuilder().setTimestamp(15000).setValue(999))
-    ).build()
+    val ts = TimeSeries.newBuilder()
+      .addLabels(Label.newBuilder().setName("myName").setValue("myValue"))
+    val nwr: WriteRequest = WriteRequest.newBuilder()
+      .addTimeseries(
+        ts.addSamples(Sample.newBuilder().setTimestamp(15000).setValue(999))
+          .addSamples(Sample.newBuilder().setTimestamp(16000).setValue(998))
+      )
+      .addTimeseries(
+        TimeSeries.newBuilder()
+          .addLabels(Label.newBuilder().setName("myName2").setValue("myValue2"))
+          .addSamples(Sample.newBuilder().setTimestamp(17000).setValue(997))
+          .addSamples(Sample.newBuilder().setTimestamp(18000).setValue(996))
+      )
+      .build()
 
     println(JsonFormat.printer().print(nwr))
     println(nwr.toByteArray)
 
-    val httpclient: CloseableHttpClient = HttpClients.createDefault()
-    val post = new HttpPost("http://vm.sh.agoralab.co/insert/8699/prometheus")
-    post.setEntity(new ByteArrayEntity(Snappy.compress(nwr.toByteArray)))
-    val response: CloseableHttpResponse = httpclient.execute(post)
-    println("status code: " + response.getStatusLine.getStatusCode)
+    //    val httpclient: CloseableHttpClient = HttpClients.createDefault()
+    //    val post = new HttpPost("")
+    //    post.setEntity(new ByteArrayEntity(Snappy.compress(nwr.toByteArray)))
+    //    val response: CloseableHttpResponse = httpclient.execute(post)
+    //    println("status code: " + response.getStatusLine.getStatusCode)
   }
 }
